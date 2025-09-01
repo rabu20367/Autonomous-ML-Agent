@@ -10,7 +10,7 @@ Thank you for your interest in contributing to the Autonomous ML Agent project! 
 
 ### 2. **Set Up Development Environment**
 ```bash
-git clone https://github.com/yourusername/autonomous-ml-agent.git
+git clone https://github.com/rabu20367/autonomous-ml-agent.git
 cd autonomous-ml-agent
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -263,7 +263,7 @@ We use semantic versioning (MAJOR.MINOR.PATCH):
 ### **Questions and Support**
 - **GitHub Issues**: For bug reports and feature requests
 - **GitHub Discussions**: For questions and general discussion
-- **Email**: your.email@example.com for private matters
+- **Email**: atm.hasibur.rashid20367@gmail.com for private matters
 
 ### **Resources**
 - [Python Documentation](https://docs.python.org/)

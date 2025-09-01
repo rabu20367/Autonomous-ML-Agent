@@ -113,9 +113,9 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## Support
 
-- 📧 **Email**: your.email@example.com
-- 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/autonomous-ml-agent/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/autonomous-ml-agent/discussions)
+- 📧 **Email**: atm.hasibur.rashid20367@gmail.com
+- 🐛 **Issues**: [GitHub Issues](https://github.com/rabu20367/autonomous-ml-agent/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/rabu20367/autonomous-ml-agent/discussions)
 
 ---
 

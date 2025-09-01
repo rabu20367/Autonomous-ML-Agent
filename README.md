@@ -38,7 +38,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/autonomous-ml-agent.git
+   git clone https://github.com/rabu20367/autonomous-ml-agent.git
    cd autonomous-ml-agent
    ```
 
@@ -288,7 +288,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ### **Development Setup**
 ```bash
-git clone https://github.com/yourusername/autonomous-ml-agent.git
+git clone https://github.com/rabu20367/autonomous-ml-agent.git
 cd autonomous-ml-agent
 pip install -e ".[dev]"
 pre-commit install
@@ -308,16 +308,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 **Email**: your.email@example.com
-- 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/autonomous-ml-agent/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/autonomous-ml-agent/discussions)
+- 📧 **Email**: atm.hasibur.rashid20367@gmail.com
+- 🐛 **Issues**: [GitHub Issues](https://github.com/rabu20367/autonomous-ml-agent/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/rabu20367/autonomous-ml-agent/discussions)
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/autonomous-ml-agent&type=Date)](https://star-history.com/#yourusername/autonomous-ml-agent&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=rabu20367/autonomous-ml-agent&type=Date)](https://star-history.com/#rabu20367/autonomous-ml-agent&Date)
 
 ---
 
-**Made with ❤️ by [Your Name]**
+**Made with ❤️ by Hasibur Rashid**
 
 *Transform your data into actionable insights with the power of autonomous machine learning!*

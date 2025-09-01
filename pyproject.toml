@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "autonomous-ml-agent"
 version = "1.0.0"
 description = "Autonomous ML Agent with LLM-driven strategic planning"
-authors = [{name = "Faizan Ahmed", email = "faizan@example.com"}]
+authors = [{name = "Hasibur Rashid", email = "atm.hasibur.rashid20367@gmail.com"}]
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
