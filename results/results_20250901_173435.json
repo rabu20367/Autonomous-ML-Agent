@@ -1,0 +1,42 @@
+{
+  "pipeline_metadata": {
+    "timestamp": "2025-09-01T17:34:35.937934",
+    "dataset_profile": {
+      "shape": [
+        100,
+        6
+      ],
+      "target_type": "classification",
+      "target_distribution": {
+        "0": 0.6,
+        "1": 0.4
+      },
+      "feature_types": {
+        "feature_0": "numerical"
+      },
+      "missing_patterns": {
+        "feature_0": 0.0
+      },
+      "complexity_score": 0.5,
+      "domain_hints": [
+        "test_data"
+      ]
+    },
+    "strategy": "adaptive",
+    "total_experiments": 0,
+    "successful_experiments": 0
+  },
+  "leaderboard": [],
+  "best_model": {
+    "result": null,
+    "performance": {}
+  },
+  "ensemble_strategy": {
+    "strategy": "no_ensemble",
+    "reason": "insufficient models"
+  },
+  "experiment_history": [],
+  "insights": {
+    "error": "No successful experiments"
+  }
+}

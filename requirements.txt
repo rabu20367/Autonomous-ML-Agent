@@ -1,0 +1,63 @@
+# Core ML
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+xgboost>=1.7.0
+optuna>=3.0.0
+hyperopt>=0.2.7
+bayesian-optimization>=1.4.3
+
+# LLM Integration
+openai>=1.0.0
+anthropic>=0.7.0
+google-generativeai>=0.3.2
+
+# Vector Database
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4
+
+# Web & API
+fastapi>=0.100.0
+uvicorn>=0.23.0
+streamlit>=1.25.0
+flask>=3.0.0
+flask-socketio>=5.3.6
+websockets>=12.0
+
+# Real-time Communication
+python-socketio>=5.9.0
+eventlet>=0.33.3
+
+# Visualization
+plotly>=5.17.0
+matplotlib>=3.8.2
+seaborn>=0.13.0
+dash>=2.14.2
+
+# Data Processing
+sqlalchemy>=2.0.23
+joblib>=1.3.0
+
+# Explainable AI
+shap>=0.43.0
+lime>=0.2.0.1
+
+# Utilities
+python-dotenv>=1.0.0
+click>=8.1.0
+pydantic>=2.0.0
+tqdm>=4.66.1
+
+# Web Dependencies
+jinja2>=3.1.2
+werkzeug>=3.0.1
+itsdangerous>=2.1.2
+markupsafe>=2.1.3
+
+# Development
+pytest>=7.4.0
+pytest-asyncio>=0.21.1
+black>=23.0.0
+flake8>=6.1.0
+mypy>=1.5.0

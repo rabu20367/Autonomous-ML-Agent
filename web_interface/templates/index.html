@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Autonomous ML Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Autonomous ML Agent</h1>
+            <p>Upload your dataset and let AI train the best model for you!</p>
+        </header>
+
+        <nav class="navbar">
+            <a href="/" class="nav-link active">🏠 Home</a>
+            <a href="/dashboard" class="nav-link">📊 Dashboard</a>
+            <a href="/experiments" class="nav-link">🧪 Experiments</a>
+        </nav>
+
+        <div class="main-content">
+            <!-- Configuration Panel -->
+            <div class="config-panel">
+                <h2>⚙️ Configuration</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="llm-provider">🧠 LLM Provider:</label>
+                        <select id="llm-provider">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="google">Google</option>
+                        </select>
+                    </div>
+                    <div class="config-item">
+                        <label for="time-budget">⏱️ Time Budget (minutes):</label>
+                        <input type="range" id="time-budget" min="5" max="60" value="15">
+                        <span id="time-budget-value">15</span>
+                    </div>
+                    <div class="config-item">
+                        <label for="target-metric">🎯 Target Metric:</label>
+                        <select id="target-metric">
+                            <option value="accuracy">Accuracy</option>
+                            <option value="precision">Precision</option>
+                            <option value="recall">Recall</option>
+                            <option value="f1_score">F1 Score</option>
+                            <option value="roc_auc">ROC AUC</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Upload Section -->
+            <div class="upload-section">
+                <h2>📊 Dataset Upload</h2>
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <div class="upload-icon">📁</div>
+                        <p>Drag and drop your CSV file here or click to browse</p>
+                        <input type="file" id="file-input" accept=".csv" style="display: none;">
+                    </div>
+                </div>
+                <div id="data-preview" class="data-preview" style="display: none;">
+                    <h3>📋 Data Preview</h3>
+                    <div id="data-table"></div>
+                    <div class="data-info">
+                        <div class="info-item">
+                            <span class="info-label">Rows:</span>
+                            <span id="data-rows">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Columns:</span>
+                            <span id="data-columns">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Missing Values:</span>
+                            <span id="data-missing">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Configuration -->
+            <div class="target-config" id="target-config" style="display: none;">
+                <h2>🎯 Target Configuration</h2>
+                <div class="config-row">
+                    <div class="config-item">
+                        <label for="target-column">Target Column:</label>
+                        <select id="target-column">
+                            <option value="">Select target column...</option>
+                        </select>
+                    </div>
+                    <div class="config-item">
+                        <label for="feature-columns">Feature Columns:</label>
+                        <select id="feature-columns" multiple>
+                        </select>
+                    </div>
+                </div>
+                <div id="target-visualization"></div>
+            </div>
+
+            <!-- Experiment Control -->
+            <div class="experiment-control">
+                <h2>🎮 Experiment Control</h2>
+                <div class="control-buttons">
+                    <button id="start-btn" class="btn btn-primary" disabled>🎯 Start Training</button>
+                    <button id="pause-btn" class="btn btn-secondary" disabled>⏸️ Pause</button>
+                    <button id="stop-btn" class="btn btn-danger" disabled>⏹️ Stop</button>
+                    <button id="reset-btn" class="btn btn-warning" disabled>🔄 Reset</button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Ready to start</div>
+                </div>
+            </div>
+
+            <!-- Real-time Monitoring -->
+            <div class="monitoring-section">
+                <h2>📊 Real-time Monitoring</h2>
+                <div class="monitoring-grid">
+                    <div class="monitoring-card">
+                        <h3>🔄 Recent Updates</h3>
+                        <div id="recent-updates" class="updates-list"></div>
+                    </div>
+                    <div class="monitoring-card">
+                        <h3>📈 Performance Trend</h3>
+                        <div id="performance-chart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="results-section" style="display: none;">
+                <h2>🏆 Results & Analysis</h2>
+                
+                <!-- Summary Metrics -->
+                <div class="summary-metrics">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-experiments">-</div>
+                        <div class="metric-label">Total Experiments</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="best-score">-</div>
+                        <div class="metric-label">Best Score</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="successful-experiments">-</div>
+                        <div class="metric-label">Successful</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-time">-</div>
+                        <div class="metric-label">Total Time</div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="results-card">
+                    <h3>📊 Model Leaderboard</h3>
+                    <div id="leaderboard-table"></div>
+                </div>
+
+                <!-- Performance Charts -->
+                <div class="results-grid">
+                    <div class="results-card">
+                        <h3>📈 Performance Comparison</h3>
+                        <div id="performance-comparison-chart"></div>
+                    </div>
+                    <div class="results-card">
+                        <h3>⏱️ Training Time vs Performance</h3>
+                        <div id="time-performance-chart"></div>
+                    </div>
+                </div>
+
+                <!-- Best Model Details -->
+                <div class="results-card">
+                    <h3>🥇 Best Model Details</h3>
+                    <div id="best-model-details"></div>
+                </div>
+
+                <!-- AI Insights -->
+                <div class="results-card">
+                    <h3>💡 AI Insights</h3>
+                    <div id="ai-insights"></div>
+                </div>
+
+                <!-- Download Options -->
+                <div class="results-card">
+                    <h3>📥 Download Options</h3>
+                    <div class="download-buttons">
+                        <button id="download-model" class="btn btn-download">📦 Download Model</button>
+                        <button id="download-results" class="btn btn-download">📊 Download Results</button>
+                        <button id="download-deployment" class="btn btn-download">🚀 Download Deployment Package</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-label">Connection:</span>
+                <span id="connection-status" class="status-value">Connecting...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Active Experiments:</span>
+                <span id="active-experiments" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Last Update:</span>
+                <span id="last-update" class="status-value">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-message">Processing...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
