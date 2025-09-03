@@ -63,12 +63,45 @@ class StructuredLLMClient:
             return f'{{"error": "LLM call failed: {str(e)}"}}'
     
     def _parse_json_response(self, response: str) -> Dict[str, Any]:
-        """Parse and validate JSON response"""
-        # Extract JSON from response
+        """Parse and validate JSON response with robust error handling"""
+        if not response or not response.strip():
+            return {"error": "Empty response from LLM"}
+        
+        # Try to extract JSON from response
         json_match = re.search(r'\{.*\}', response, re.DOTALL)
         json_str = json_match.group() if json_match else response.strip()
         
+        # Clean up common JSON issues
+        json_str = json_str.strip()
+        if not json_str.startswith('{'):
+            json_str = '{' + json_str
+        if not json_str.endswith('}'):
+            json_str = json_str + '}'
+        
         try:
-            return json.loads(json_str)
-        except json.JSONDecodeError:
-            return {"error": "Invalid JSON response", "raw": response[:200]}
+            parsed = json.loads(json_str)
+            # Validate that it's a dictionary
+            if not isinstance(parsed, dict):
+                return {"error": "Response is not a JSON object", "raw": response[:200]}
+            return parsed
+        except json.JSONDecodeError as e:
+            # Try to fix common JSON issues
+            try:
+                # Remove trailing commas
+                json_str = re.sub(r',\s*}', '}', json_str)
+                json_str = re.sub(r',\s*]', ']', json_str)
+                # Remove comments
+                json_str = re.sub(r'//.*$', '', json_str, flags=re.MULTILINE)
+                json_str = re.sub(r'/\*.*?\*/', '', json_str, flags=re.DOTALL)
+                
+                parsed = json.loads(json_str)
+                if isinstance(parsed, dict):
+                    return parsed
+            except json.JSONDecodeError:
+                pass
+            
+            return {
+                "error": f"Invalid JSON response: {str(e)}", 
+                "raw": response[:200],
+                "attempted_parse": json_str[:200]
+            }

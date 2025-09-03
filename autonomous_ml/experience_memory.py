@@ -15,12 +15,26 @@ from pathlib import Path
 class ExperienceMemory:
     """Vector-based memory system for ML experiment experiences"""
     
-    def __init__(self, db_path: str = "experiences.db", collection_name: str = "ml_experiences"):
+    def __init__(self, db_path: str = None, collection_name: str = "ml_experiences"):
+        # Use environment variables or config for paths
+        import os
+        from pathlib import Path
+        
+        if db_path is None:
+            db_path = os.getenv('EXPERIENCE_DB_PATH', 'experiences.db')
+        
+        chroma_path = os.getenv('CHROMA_DB_PATH', './chroma_db')
+        
         self.db_path = db_path
         self.collection_name = collection_name
         
+        # Ensure paths are absolute and directories exist
+        self.db_path = Path(db_path).resolve()
+        chroma_path = Path(chroma_path).resolve()
+        chroma_path.mkdir(parents=True, exist_ok=True)
+        
         # Initialize ChromaDB
-        self.chroma_client = chromadb.PersistentClient(path="./chroma_db")
+        self.chroma_client = chromadb.PersistentClient(path=str(chroma_path))
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name,
             metadata={"hnsw:space": "cosine"}

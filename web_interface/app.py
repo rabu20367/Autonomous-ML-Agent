@@ -24,7 +24,7 @@ from autonomous_ml.config import Config
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', os.urandom(24).hex())
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Global agent instance
@@ -171,9 +171,25 @@ def start_experiment():
         # Create experiment
         experiment_id = experiment_manager.create_experiment(config)
         
-        # Start experiment in background
+        # Start experiment in background using proper async handling
         def run_experiment():
-            asyncio.run(run_experiment_async(experiment_id, config))
+            try:
+                # Create new event loop for the thread
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(run_experiment_async(experiment_id, config))
+            except Exception as e:
+                print(f"Error in background experiment: {e}")
+                # Update experiment with error
+                experiment_manager.update_experiment(
+                    experiment_id,
+                    status='failed',
+                    message=f'Background experiment failed: {str(e)}',
+                    error=str(e),
+                    failed_at=datetime.now().isoformat()
+                )
+            finally:
+                loop.close()
         
         thread = threading.Thread(target=run_experiment)
         thread.daemon = True

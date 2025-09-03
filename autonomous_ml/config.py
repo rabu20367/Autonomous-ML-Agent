@@ -30,6 +30,7 @@ class Config:
     
     # Model registry with optimized hyperparameter spaces
     MODELS = {
+        # Classification models
         'logistic_regression': ModelConfig(
             name='Logistic Regression',
             estimator_class='sklearn.linear_model.LogisticRegression',
@@ -79,6 +80,84 @@ class Config:
         'mlp': ModelConfig(
             name='Multi-layer Perceptron',
             estimator_class='sklearn.neural_network.MLPClassifier',
+            hyperparameter_space={
+                'hidden_layer_sizes': [(50,), (100,), (50, 50), (100, 50)],
+                'activation': ['relu', 'tanh', 'logistic'],
+                'alpha': (0.0001, 0.1),
+                'learning_rate': ['constant', 'adaptive'],
+                'max_iter': (200, 1000)
+            },
+            default_params={'random_state': 42}
+        ),
+        # Regression models
+        'linear_regression': ModelConfig(
+            name='Linear Regression',
+            estimator_class='sklearn.linear_model.LinearRegression',
+            hyperparameter_space={
+                'fit_intercept': [True, False],
+                'normalize': [True, False]
+            },
+            default_params={}
+        ),
+        'ridge_regression': ModelConfig(
+            name='Ridge Regression',
+            estimator_class='sklearn.linear_model.Ridge',
+            hyperparameter_space={
+                'alpha': (0.01, 100.0),
+                'fit_intercept': [True, False],
+                'normalize': [True, False]
+            },
+            default_params={'random_state': 42}
+        ),
+        'lasso_regression': ModelConfig(
+            name='Lasso Regression',
+            estimator_class='sklearn.linear_model.Lasso',
+            hyperparameter_space={
+                'alpha': (0.01, 10.0),
+                'fit_intercept': [True, False],
+                'normalize': [True, False],
+                'max_iter': (100, 2000)
+            },
+            default_params={'random_state': 42}
+        ),
+        'random_forest_regressor': ModelConfig(
+            name='Random Forest Regressor',
+            estimator_class='sklearn.ensemble.RandomForestRegressor',
+            hyperparameter_space={
+                'n_estimators': (50, 500),
+                'max_depth': (3, 20),
+                'min_samples_split': (2, 20),
+                'min_samples_leaf': (1, 10),
+                'max_features': ['sqrt', 'log2', None]
+            },
+            default_params={'random_state': 42}
+        ),
+        'gradient_boosting_regressor': ModelConfig(
+            name='Gradient Boosting Regressor',
+            estimator_class='sklearn.ensemble.GradientBoostingRegressor',
+            hyperparameter_space={
+                'n_estimators': (50, 500),
+                'learning_rate': (0.01, 0.3),
+                'max_depth': (3, 10),
+                'min_samples_split': (2, 20),
+                'min_samples_leaf': (1, 10)
+            },
+            default_params={'random_state': 42}
+        ),
+        'knn_regressor': ModelConfig(
+            name='k-Nearest Neighbors Regressor',
+            estimator_class='sklearn.neighbors.KNeighborsRegressor',
+            hyperparameter_space={
+                'n_neighbors': (3, 50),
+                'weights': ['uniform', 'distance'],
+                'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
+                'p': (1, 2)
+            },
+            default_params={}
+        ),
+        'mlp_regressor': ModelConfig(
+            name='Multi-layer Perceptron Regressor',
+            estimator_class='sklearn.neural_network.MLPRegressor',
             hyperparameter_space={
                 'hidden_layer_sizes': [(50,), (100,), (50, 50), (100, 50)],
                 'activation': ['relu', 'tanh', 'logistic'],

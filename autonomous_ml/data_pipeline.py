@@ -40,8 +40,32 @@ class DataPipeline:
     
     def _determine_target_type(self, target_series: pd.Series) -> str:
         """Determine if target is classification or regression"""
-        if target_series.dtype in ['object', 'category'] or target_series.nunique() < 20:
+        # Check data type first
+        if target_series.dtype in ['object', 'category']:
             return 'classification'
+        
+        # For numeric data, check if values are integers and have limited unique values
+        if target_series.dtype in ['int64', 'int32', 'int16', 'int8']:
+            unique_count = target_series.nunique()
+            # If it's integer with few unique values, likely classification
+            if unique_count <= 20:
+                return 'classification'
+            # If it's integer with many unique values, likely regression
+            return 'regression'
+        
+        # For float data, check if values are actually integers
+        if target_series.dtype in ['float64', 'float32', 'float16']:
+            # Check if all values are effectively integers
+            if target_series.dropna().apply(lambda x: x.is_integer()).all():
+                unique_count = target_series.nunique()
+                if unique_count <= 20:
+                    return 'classification'
+                return 'regression'
+            else:
+                # Has non-integer values, definitely regression
+                return 'regression'
+        
+        # Default to regression for other numeric types
         return 'regression'
     
     def _classify_features(self, df: pd.DataFrame) -> Dict[str, str]:
@@ -142,11 +166,13 @@ class DataPipeline:
         # Get feature names after preprocessing
         self.feature_names = self._get_feature_names(X)
         
-        # Handle target variable
-        if y.dtype == 'object' or y.dtype.name == 'category':
+        # Handle target variable based on type
+        target_type = self._determine_target_type(y)
+        if target_type == 'classification' and (y.dtype == 'object' or y.dtype.name == 'category'):
             self.label_encoder = LabelEncoder()
             y_processed = self.label_encoder.fit_transform(y)
         else:
+            # For regression or already numeric classification targets
             y_processed = y.values
         
         # Convert back to DataFrame/Series
@@ -154,9 +180,16 @@ class DataPipeline:
         y_processed = pd.Series(y_processed, index=y.index, name=self.target_column)
         
         # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_processed, y_processed, test_size=self.test_size, random_state=42, stratify=y_processed
-        )
+        if target_type == 'classification' and len(y_processed.unique()) > 1:
+            # Use stratification for classification with multiple classes
+            X_train, X_test, y_train, y_test = train_test_split(
+                X_processed, y_processed, test_size=self.test_size, random_state=42, stratify=y_processed
+            )
+        else:
+            # No stratification for regression or single-class classification
+            X_train, X_test, y_train, y_test = train_test_split(
+                X_processed, y_processed, test_size=self.test_size, random_state=42
+            )
         
         return X_train, X_test, y_train, y_test
     
@@ -207,6 +240,14 @@ class DataPipeline:
     
     def _get_feature_names(self, X: pd.DataFrame) -> List[str]:
         """Get feature names after preprocessing"""
+        try:
+            # Try to get feature names from the preprocessor
+            if hasattr(self.preprocessor, 'get_feature_names_out'):
+                return self.preprocessor.get_feature_names_out().tolist()
+        except Exception:
+            pass
+        
+        # Fallback: manual feature name construction
         feature_names = []
         
         # Numerical features
@@ -215,12 +256,27 @@ class DataPipeline:
         
         # Categorical features (after one-hot encoding)
         categorical_columns = X.select_dtypes(include=['object', 'category']).columns.tolist()
-        if categorical_columns:
-            # Get one-hot encoded feature names
-            cat_transformer = self.preprocessor.named_transformers_['cat']
-            onehot_encoder = cat_transformer.named_steps['onehot']
-            cat_features = onehot_encoder.get_feature_names_out(categorical_columns)
-            feature_names.extend(cat_features)
+        if categorical_columns and 'cat' in self.preprocessor.named_transformers_:
+            try:
+                cat_transformer = self.preprocessor.named_transformers_['cat']
+                if hasattr(cat_transformer, 'named_steps') and 'onehot' in cat_transformer.named_steps:
+                    onehot_encoder = cat_transformer.named_steps['onehot']
+                    if hasattr(onehot_encoder, 'get_feature_names_out'):
+                        cat_features = onehot_encoder.get_feature_names_out(categorical_columns)
+                        feature_names.extend(cat_features)
+                    else:
+                        # Fallback for older sklearn versions
+                        feature_names.extend(categorical_columns)
+                else:
+                    feature_names.extend(categorical_columns)
+            except Exception:
+                # If anything fails, just use original column names
+                feature_names.extend(categorical_columns)
+        
+        # Ensure we have the right number of features
+        if len(feature_names) != X.shape[1]:
+            # Generate generic feature names
+            feature_names = [f"feature_{i}" for i in range(X.shape[1])]
         
         return feature_names
     

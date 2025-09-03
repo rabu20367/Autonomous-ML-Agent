@@ -10,12 +10,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder, RobustScaler
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, RandomForestRegressor, GradientBoostingRegressor
+from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, Lasso
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_score
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, mean_squared_error, mean_absolute_error, r2_score
 import optuna
 import time
 import warnings
@@ -28,15 +28,25 @@ class PlanExecutor:
         self.config = config
         self.model_registry = self._build_model_registry()
         self.preprocessor_registry = self._build_preprocessor_registry()
+        self.last_pipeline = None
         
     def _build_model_registry(self) -> Dict[str, Any]:
         """Build registry of available models"""
         return {
+            # Classification models
             'logistic_regression': LogisticRegression,
             'random_forest': RandomForestClassifier,
             'gradient_boosting': GradientBoostingClassifier,
             'knn': KNeighborsClassifier,
-            'mlp': MLPClassifier
+            'mlp': MLPClassifier,
+            # Regression models
+            'linear_regression': LinearRegression,
+            'ridge_regression': Ridge,
+            'lasso_regression': Lasso,
+            'random_forest_regressor': RandomForestRegressor,
+            'gradient_boosting_regressor': GradientBoostingRegressor,
+            'knn_regressor': KNeighborsRegressor,
+            'mlp_regressor': MLPRegressor
         }
     
     def _build_preprocessor_registry(self) -> Dict[str, Any]:
@@ -84,6 +94,9 @@ class PlanExecutor:
             # Evaluate on test set
             best_pipeline = search_results['best_estimator']
             test_metrics = self._evaluate_pipeline(best_pipeline, X_test, y_test)
+            
+            # Store the pipeline for later use
+            self.last_pipeline = best_pipeline
             
             # Extract feature importance if available
             feature_importance = self._extract_feature_importance(best_pipeline, X_train.columns)
@@ -188,16 +201,21 @@ class PlanExecutor:
                 # Convert to uniform distribution
                 sklearn_params[param] = np.linspace(space[0], space[1], 10).tolist()
         
+        # Determine appropriate scoring metric based on model type
+        model = pipeline.named_steps['model']
+        is_classification = hasattr(model, 'predict_proba') or 'Classifier' in model.__class__.__name__
+        scoring = 'accuracy' if is_classification else 'neg_mean_squared_error'
+        
         # Execute search
         if search_method == 'grid':
             search = GridSearchCV(
                 pipeline, sklearn_params, 
-                cv=3, scoring='accuracy', n_jobs=-1
+                cv=3, scoring=scoring, n_jobs=-1
             )
         else:  # random or bayesian
             search = RandomizedSearchCV(
                 pipeline, sklearn_params,
-                n_iter=n_trials, cv=3, scoring='accuracy', n_jobs=-1
+                n_iter=n_trials, cv=3, scoring=scoring, n_jobs=-1
             )
         
         search.fit(X_train, y_train)
@@ -215,12 +233,26 @@ class PlanExecutor:
         
         y_pred = pipeline.predict(X_test)
         
-        metrics = {
-            'test_accuracy': accuracy_score(y_test, y_pred),
-            'test_precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
-            'test_recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
-            'test_f1': f1_score(y_test, y_pred, average='weighted', zero_division=0)
-        }
+        # Determine if this is classification or regression based on the model
+        model = pipeline.named_steps['model']
+        is_classification = hasattr(model, 'predict_proba') or 'Classifier' in model.__class__.__name__
+        
+        if is_classification:
+            # Classification metrics
+            metrics = {
+                'test_accuracy': accuracy_score(y_test, y_pred),
+                'test_precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
+                'test_recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
+                'test_f1': f1_score(y_test, y_pred, average='weighted', zero_division=0)
+            }
+        else:
+            # Regression metrics
+            metrics = {
+                'test_mse': mean_squared_error(y_test, y_pred),
+                'test_rmse': np.sqrt(mean_squared_error(y_test, y_pred)),
+                'test_mae': mean_absolute_error(y_test, y_pred),
+                'test_r2': r2_score(y_test, y_pred)
+            }
         
         return metrics
     
